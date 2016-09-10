@@ -13,10 +13,7 @@ WORKDIR /usr/src/app
 COPY package.json /usr/src/app/
 RUN npm install
 
-RUN mkdir /run-data
-
 COPY . /usr/src/app
-COPY patch /usr/src/app
 
 EXPOSE 5000
 CMD [ "node", "index.js" ]
