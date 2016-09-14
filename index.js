@@ -5,7 +5,7 @@ const wkhtmltopdf = require('wkhtmltopdf-installer')
 const uuid = require('uuid').v1
 const async = require('async')
 
-const temp = process.env.tempDirectory || ''
+const temp = process.env.temp || ''
 console.log(`temp directory ${temp}`)
 
 const processPart = (opts, id, partName, cb) => {
