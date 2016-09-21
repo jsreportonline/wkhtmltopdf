@@ -1,19 +1,19 @@
 const http = require('http')
 const execFile = require('child_process').execFile
 const fs = require('fs')
+const path = require('path')
 const wkhtmltopdf = require('wkhtmltopdf-installer')
 const uuid = require('uuid').v1
 const async = require('async')
 
 const temp = process.env.temp || ''
-console.log(`temp directory ${temp}`)
 
 const processPart = (opts, id, partName, cb) => {
   if (!opts[partName]) {
     return cb()
   }
 
-  fs.writeFile(`${temp}${id}-${partName}.html`, opts[partName], (err) => {
+  fs.writeFile(path.join(temp, `${id}-${partName}.html`), opts[partName], (err) => {
     if (err) {
       return cb(err)
     }
@@ -42,13 +42,13 @@ const server = http.createServer((req, res) => {
     const id = uuid()
 
     async.waterfall([
-      (cb) => fs.writeFile(`${temp}${id}.html`, opts.html, cb),
+      (cb) => fs.writeFile(path.join(temp, `${id}.html`), opts.html, cb),
       (cb) => processPart(opts, id, 'header-html', cb),
       (cb) => processPart(opts, id, 'footer-html', cb),
       (cb) => processPart(opts, id, 'cover', cb),
       (cb) => {
-        opts.args.push(`${temp}${id}.html`)
-        opts.args.push(`${temp}${id}.pdf`)
+        opts.args.push(path.join(temp,`${id}.html`))
+        opts.args.push(path.join(temp,`${id}.pdf`))
         console.log(opts.args)
         cb()
       },
@@ -60,7 +60,7 @@ const server = http.createServer((req, res) => {
         return res.end('Error when executing wkhtmltopdf ' + err.stack)
       }
 
-      const stream = fs.createReadStream(`${temp}${id}.pdf`)
+      const stream = fs.createReadStream(path.join(temp,`${id}.pdf`))
       stream.pipe(res)
     })
   })
