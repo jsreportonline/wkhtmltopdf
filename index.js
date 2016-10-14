@@ -16,10 +16,10 @@ const processPart = (opts, id, partName, cb) => {
   fs.writeFile(path.join(temp, `${id}-${partName}.html`), opts[partName], (err) => {
     if (err) {
       return cb(err)
-    }
+    } 
 
     opts.args.push(`--${partName}`)
-    opts.args.push(`${id}-${partName}.html`)
+    opts.args.push(path.join(temp, `${id}-${partName}.html`))
     cb()
   })
 }
@@ -36,7 +36,6 @@ const server = http.createServer((req, res) => {
   })
 
   req.on('end', function () {
-    console.log(data)
     const opts = JSON.parse(data)
 
     const id = uuid()
@@ -47,8 +46,8 @@ const server = http.createServer((req, res) => {
       (cb) => processPart(opts, id, 'footer-html', cb),
       (cb) => processPart(opts, id, 'cover', cb),
       (cb) => {
-        opts.args.push(path.join(temp,`${id}.html`))
-        opts.args.push(path.join(temp,`${id}.pdf`))
+        opts.args.push(path.join(temp, `${id}.html`))
+        opts.args.push(path.join(temp, `${id}.pdf`))
         console.log(opts.args)
         cb()
       },
