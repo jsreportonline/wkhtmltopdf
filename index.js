@@ -16,7 +16,7 @@ const processPart = (opts, id, partName, cb) => {
   fs.writeFile(path.join(temp, `${id}-${partName}.html`), opts[partName], (err) => {
     if (err) {
       return cb(err)
-    } 
+    }
 
     opts.args.push(`--${partName}`)
     opts.args.push(path.join(temp, `${id}-${partName}.html`))
@@ -48,18 +48,22 @@ const server = http.createServer((req, res) => {
       (cb) => {
         opts.args.push(path.join(temp, `${id}.html`))
         opts.args.push(path.join(temp, `${id}.pdf`))
-        console.log(opts.args)
         cb()
       },
       (cb) => execFile(wkhtmltopdf.path, opts.args, cb)], (err) => {
-      console.log('done')
       if (err) {
-        res.statusCode = 500
-        res.setHeader('Content-Type', 'text/plain')
-        return res.end('Error when executing wkhtmltopdf ' + err.stack)
+        console.error(err)
+        res.statusCode = 400
+        res.setHeader('Content-Type', 'application/json')
+        return res.end(JSON.stringify({
+          error: {
+            message: err.message,
+            stack: err.stack
+          }
+        }))
       }
 
-      const stream = fs.createReadStream(path.join(temp,`${id}.pdf`))
+      const stream = fs.createReadStream(path.join(temp, `${id}.pdf`))
       stream.pipe(res)
     })
   })
