@@ -31,27 +31,11 @@ const server = http.createServer((req, res) => {
     return res.end('OK')
   }
   var data = ''
-
   req.on('data', function (chunk) {
     data += chunk.toString()
   })
 
-  const error = (err) => {
-    console.error(err)
-
-    res.statusCode = 400
-    res.setHeader('Content-Type', 'application/json')
-
-    return res.end(JSON.stringify({
-      error: {
-        message: err.message,
-        stack: err.stack
-      }
-    }))
-  }
-
   req.on('end', function () {
-    let logs = []
     const opts = JSON.parse(data)
 
     const id = uuid()
@@ -66,39 +50,21 @@ const server = http.createServer((req, res) => {
         opts.args.push(path.join(temp, `${id}.pdf`))
         cb()
       },
-      (cb) => {
-        logs.push({
-          level: 'debug',
-          message: 'wkhtmltopdf  ' + opts.args.join(' '),
-          timestamp: new Date().getTime()
-        })
-
-        execFile(wkhtmltopdf.path, opts.args, cb)
-      }], (err, stderr, stdout) => {
-      logs.push({
-        level: 'debug',
-        message: (err || '') + (stderr || '') + (stdout || ''),
-        timestamp: new Date().getTime()
-      })
-
+      (cb) => execFile(wkhtmltopdf.path, opts.args, cb)], (err) => {
       if (err) {
-        return error(err)
+        console.error(err)
+        res.statusCode = 400
+        res.setHeader('Content-Type', 'application/json')
+        return res.end(JSON.stringify({
+          error: {
+            message: err.message,
+            stack: err.stack
+          }
+        }))
       }
 
-      console.log('sending response')
-      res.statusCode = 200
-      res.setHeader('Content-Type', 'application/json')
-
-      fs.readFile(path.join(temp, `${id}.pdf`), (err, buf) => {
-        if (err) {
-          return error(err)
-        }
-
-        res.end(JSON.stringify({
-          content: buf.toString('base64'),
-          logs: logs
-        }))
-      })
+      const stream = fs.createReadStream(path.join(temp, `${id}.pdf`))
+      stream.pipe(res)
     })
   })
 })
