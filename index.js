@@ -30,13 +30,13 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'text/plain')
     return res.end('OK')
   }
-  var data = ''
+  var data = []
   req.on('data', function (chunk) {
-    data += chunk.toString()
+    data.push(chunk)
   })
 
   req.on('end', function () {
-    const opts = JSON.parse(data)
+    const opts = JSON.parse(Buffer.concat(data).toString())
 
     const id = uuid()
 
